@@ -24,7 +24,7 @@ interface PipelineDao {
 object DbConfig {
     fun dataSource(): DataSource {
         val config = HikariConfig()
-        config.jdbcUrl = "jdbc:${System.getProperty("DATABASE_URL", "postgresql://host:port/database?user=fred&password=secret")}"
+        config.jdbcUrl = "jdbc:${System.getenv("DATABASE_URL")}"
         return HikariDataSource(config)
     }
 
