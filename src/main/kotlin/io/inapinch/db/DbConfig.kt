@@ -24,6 +24,7 @@ interface PipelineDao {
 object DbConfig {
     fun dataSource(): DataSource {
         val config = HikariConfig()
+        config.driverClassName = "org.postgresql.Driver"
         config.jdbcUrl = "jdbc:${System.getenv("DATABASE_URL")}"
         return HikariDataSource(config)
     }
