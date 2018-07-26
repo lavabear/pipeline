@@ -9,7 +9,7 @@ import io.javalin.translator.json.JavalinJacksonPlugin
 
 class WebApplication {
     companion object {
-        fun start(pipelineDao: PipelineDao, objectMapper: ObjectMapper, port: Int = 8080) {
+        fun start(pipelineDao: PipelineDao, objectMapper: ObjectMapper, port: Int) {
             Javalin.create().apply {
                 enableStandardRequestLogging()
                 enableDynamicGzip()

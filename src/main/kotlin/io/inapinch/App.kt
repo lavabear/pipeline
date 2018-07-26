@@ -8,5 +8,5 @@ fun main(args: Array<String>) {
     val objectMapper = jacksonObjectMapper()
     val pipelineDao = DbConfig.pipelineDao(objectMapper)
 
-    WebApplication.start(pipelineDao, objectMapper)
+    WebApplication.start(pipelineDao, objectMapper, System.getenv("PORT").toInt())
 }
