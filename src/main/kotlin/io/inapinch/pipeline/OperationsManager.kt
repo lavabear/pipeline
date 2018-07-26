@@ -1,10 +1,58 @@
 package io.inapinch.pipeline
 
+import io.inapinch.db.PipelineDao
+import org.slf4j.LoggerFactory
+import java.util.*
+import java.util.concurrent.CompletableFuture
+import java.util.concurrent.ConcurrentHashMap
+import java.util.stream.Stream
 
-typealias OperationsPipeline = Pipeline<Operation>
+class OperationsManager(private val pipelineDao: PipelineDao) {
 
-class OperationsManager {
-    fun adapt(request: PipelineRequest) : OperationsPipeline = Pipeline(request.operations.stream())
+    private val inProgress: MutableMap<String, CompletableFuture<*>> = ConcurrentHashMap()
+
+    fun enqueue(request: PipelineRequest) : String {
+        val uuid = UUID.randomUUID().toString()
+        inProgress[uuid] = CompletableFuture.completedFuture(request)
+                .thenApplyAsync { pipelineDao.saveRequest(uuid, it); it }
+                .thenApplyAsync { apply(it) }
+                .thenApplyAsync { pipelineDao.saveResult(uuid, it); it }
+                .exceptionally { val message = "Failed to process pipeline: $uuid\n${it.localizedMessage}"; LOG.error(message, it); message }
+        return uuid
+    }
+
+    fun status(uuid: String) : PipelineStatus {
+        val future = inProgress[uuid]
+        if(future == null) {
+            val result = pipelineDao.result(uuid)
+            if(result.isPresent)
+                return PipelineStatus("Found", result.get())
+            return PipelineStatus("Not Found", uuid)
+        }
+        else if(!future.isDone)
+            return PipelineStatus("In Progress", uuid)
+        return PipelineStatus("Finished", future.get())
+    }
+
+    companion object {
+        private val LOG = LoggerFactory.getLogger(OperationsManager::class.java)
+
+        fun apply(request: PipelineRequest) : Any {
+            var pipeline : Pipeline<out Any> = Pipeline(Stream.of(request.start.value))
+            for(operation in request.operations)
+                pipeline = when(operation) {
+                    is Group -> pipeline.group(operation.count)
+                    is Skip -> pipeline.skip(operation.count)
+                    else -> pipeline.map {  (operation as AnyOperation).invoke(it)  }
+                }
+            return pipeline.result().get()
+        }
+    }
 }
 
-data class PipelineRequest(val operations : List<Operation> = listOf(), val destination : Destination? = null)
+data class PipelineRequest(val start: Identity<out Any>,
+                           val operations : List<Operation<out Any, out Any>> = listOf(),
+                           val destination : Destination? = null,
+                           val binding : Map<String, Any> = mapOf())
+
+data class PipelineStatus(val message: String, val result: Any? = null)

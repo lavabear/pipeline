@@ -2,14 +2,29 @@ package io.inapinch.pipeline
 
 import org.junit.Test
 import kotlin.test.assertEquals
-import kotlin.test.assertFalse
 
 class OperationsManagerTest {
 
     @Test
     fun testPipelineRequest_basic() {
-        val manager = OperationsManager()
-        assertFalse(manager.adapt(PipelineRequest()).result().isPresent)
-        assertEquals("Hugs", manager.adapt(PipelineRequest(listOf(IdentityOperation("Hugs")))).result().get().value())
+        assertEquals("Hugs", OperationsManager.apply(PipelineRequest(Identity("Hugs"))))
+    }
+
+    @Test
+    fun testPipelineRequest_regexReplace() {
+        assertEquals("", OperationsManager.apply(PipelineRequest(Identity("HAHA"), listOf(
+                RegexReplace("H", ""),
+                RegexReplace("A", "")))))
+    }
+
+    @Test
+    fun testPipelineRequest_regexSplit() {
+        assertEquals(listOf("A", "A"), OperationsManager.apply(PipelineRequest(Identity("HAHA"), listOf(RegexSplit("H")))))
+    }
+
+    @Test
+    fun testPipelineRequest_regexSplitReduce() {
+        assertEquals("AA", OperationsManager.apply(PipelineRequest(Identity("HAHA"),
+                listOf(RegexSplit("H"), Reduce<String>()))))
     }
 }

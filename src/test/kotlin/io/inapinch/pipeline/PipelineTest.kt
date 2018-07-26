@@ -49,24 +49,26 @@ class PipelineTest {
 
     @Test
     fun testCombinationsManager_identityOperations() {
-        assertEquals("Hugs!", IdentityOperation("Hu")
-                .combine(IdentityOperation("gs!"))
-                .value())
+        assertEquals("Hugs!", Identity("Hu")
+                .combine(Identity("gs!"))
+                .invoke("Hello")) // Identity ignores input
     }
 
     @Test
     fun testCombinationsManager_functional() {
-        assertEquals("Hugs!", IdentityOperation("Hu")
-                .combine(FunctionalOperation { "gs!" })
-                .value())
-        assertEquals("Hugs!", FunctionalOperation {"Hu"}
-                .combine(IdentityOperation ("gs!" ))
-                .value())
-        assertEquals("Hugs!", FunctionalOperation {"H"}
-                .combine(FunctionalOperation {"u"})
-                .combine(FunctionalOperation {"g"})
-                .combine(FunctionalOperation { "s" })
-                .combine(FunctionalOperation { "!" })
-                .value())
+        assertEquals("Hugs!", Identity("Hu")
+                .combine(FunctionalOperation { t ->  t+"gs!" })
+                .invoke(""))
+
+        assertEquals("Hugs!", FunctionalOperation {_: String -> "H"}
+                .combine(FunctionalOperation {t: String -> t+"u"})
+                .combine(FunctionalOperation {t: String -> t+"g"})
+                .combine(FunctionalOperation { t: String -> t+"s" })
+                .combine(FunctionalOperation { t: String -> "$t!" })
+                .invoke(""))
+
+        assertEquals("gs!", FunctionalOperation {_: String -> "Hu"}
+                .combine(Identity ("gs!" ))
+                .invoke(""))
     }
 }

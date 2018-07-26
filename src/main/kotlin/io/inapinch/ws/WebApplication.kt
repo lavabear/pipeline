@@ -1,27 +1,41 @@
 package io.inapinch.ws
 
+import com.fasterxml.jackson.databind.ObjectMapper
+import io.inapinch.db.PipelineDao
 import io.inapinch.ws.controllers.PipelineController
 import io.javalin.ApiBuilder.*
-import io.javalin.Javalin;
+import io.javalin.Javalin
+import io.javalin.translator.json.JavalinJacksonPlugin
 
 class WebApplication {
     companion object {
-        fun start(port: Int = 8080) {
-            val app = Javalin.create().apply {
+        fun start(pipelineDao: PipelineDao, objectMapper: ObjectMapper, port: Int = 8080) {
+            Javalin.create().apply {
                 enableStandardRequestLogging()
                 enableDynamicGzip()
                 port(port)
-            }.start()
 
-            app.routes {
-                get(PipelineController::heartbeat)
-                path("pipeline") {
-                    path("api") {
-                        get(PipelineController::status)
-                        post(PipelineController::newRequest)
+                PipelineController.prepareController(objectMapper, pipelineDao)
+
+                routes {
+                    get(PipelineController::landingPage)
+                    path("pipeline") {
+                        path("api") {
+                            get(PipelineController::status)
+                            post(PipelineController::newRequest)
+                            path(":id") {
+                                get(PipelineController::pipelineStatus)
+                                path("operations") {
+                                    get(PipelineController::pipelineRequest)
+                                }
+                            }
+                        }
                     }
                 }
-            }
+
+                exception(Exception::class.java, PipelineController::error)
+                JavalinJacksonPlugin.configure(objectMapper)
+            }.start()
         }
     }
 }
