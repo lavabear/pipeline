@@ -15,13 +15,7 @@ class Pipeline<T : Any> constructor(private val items: Stream<T>) {
 
     fun toList() : Collection<T> = items.collect(Collectors.toList())
 
-    fun duplicate(copies : Int = 2) : ParallelPipelines<T> = copy(toList(), copies)
-
     fun skip(skip : Int = 1) : Pipeline<T> = Pipeline(items.skip(skip.toLong()))
-
-    fun group(count : Int) : Pipeline<Stream<List<T>>> = Pipeline(items.map { (it as Collection<T>).toMutableList().chunked(count).stream() })
-
-    fun fork(split : Int = 2) : ParallelPipelines<T> = parallel(toList(), split)
 
     fun result() : Optional<T> = items.reduce { first, second -> CombinationsManager.combine(first, second) as T }
 
@@ -40,10 +34,6 @@ class Pipeline<T : Any> constructor(private val items: Stream<T>) {
             return ParallelPipelines(result.parallelStream()
                     .map { from(input) })
         }
-
-        fun <T : Any> parallel(input: Collection<T>, split: Int = 2) : ParallelPipelines<T> {
-            return ParallelPipelines(input.toMutableList().chunked(split).stream().map { Pipeline(it.stream()) })
-        }
     }
 }
 
@@ -57,10 +47,6 @@ class ParallelPipelines<T : Any>(private val items: Stream<Pipeline<T>>) {
     fun toList() : Collection<Collection<T>> = items.map{
         it.toList()
     }.collect(Collectors.toList())
-
-    fun duplicate(copies : Int = 2) : ParallelPipelines<Collection<T>> = Pipeline.copy(toList(), copies)
-
-    fun fork(split : Int = 2) : ParallelPipelines<Collection<T>> = Pipeline.parallel(toList(), split)
 
     fun result() : List<T> = items.map { it.result().get() }.collect(Collectors.toList())
 }
