@@ -8,6 +8,7 @@ import io.inapinch.pipeline.PipelineRequest
 import org.jetbrains.exposed.sql.*
 import org.jetbrains.exposed.sql.transactions.transaction
 import org.joda.time.DateTime
+import java.net.URI
 import java.util.*
 import javax.sql.DataSource
 
@@ -24,8 +25,12 @@ interface PipelineDao {
 object DbConfig {
     fun dataSource(): DataSource {
         val config = HikariConfig()
-        config.driverClassName = "org.postgresql.Driver"
-        config.jdbcUrl = "jdbc:${System.getenv("DATABASE_URL")}"
+        val dbUri = URI(System.getenv("DATABASE_URL"))
+
+        val username = dbUri.userInfo.split(":")[0]
+        val password = dbUri.userInfo.split(":")[1]
+        val dbUrl = "jdbc:postgresql://" + dbUri.host + ':' + dbUri.port + dbUri.path
+        config.jdbcUrl = "jdbc:$dbUrl?user=$username&password=$password"
         return HikariDataSource(config)
     }
 
