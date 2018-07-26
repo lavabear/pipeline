@@ -30,7 +30,7 @@ object DbConfig {
         val username = dbUri.userInfo.split(":")[0]
         val password = dbUri.userInfo.split(":")[1]
         val dbUrl = "jdbc:postgresql://" + dbUri.host + ':' + dbUri.port + dbUri.path
-        config.jdbcUrl = "jdbc:$dbUrl?user=$username&password=$password"
+        config.jdbcUrl = "$dbUrl?user=$username&password=$password"
         return HikariDataSource(config)
     }
 
