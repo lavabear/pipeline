@@ -19,7 +19,7 @@ class Pipeline<T : Any> constructor(private val items: Stream<T>) {
 
     fun skip(skip : Int = 1) : Pipeline<T> = Pipeline(items.skip(skip.toLong()))
 
-    fun group(count : Int) : Pipeline<List<T>> = Pipeline(items.toList().chunked(count).stream())
+    fun group(count : Int) : Pipeline<Stream<List<T>>> = Pipeline(items.map { (it as Collection<T>).toMutableList().chunked(count).stream() })
 
     fun fork(split : Int = 2) : ParallelPipelines<T> = parallel(toList(), split)
 
