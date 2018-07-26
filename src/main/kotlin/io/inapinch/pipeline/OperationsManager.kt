@@ -38,7 +38,7 @@ class OperationsManager(private val pipelineDao: PipelineDao) {
         private val LOG = LoggerFactory.getLogger(OperationsManager::class.java)
 
         fun apply(request: PipelineRequest) : Any {
-            var pipeline : Pipeline<out Any> = Pipeline(Stream.of(request.start.value))
+            var pipeline : Pipeline<out Any> = Pipeline.from(request.start.value)
             for(operation in request.operations)
                 pipeline = when(operation) {
                     is Group -> pipeline.map { (it as Collection<Any>).toMutableList().chunked(operation.count) }

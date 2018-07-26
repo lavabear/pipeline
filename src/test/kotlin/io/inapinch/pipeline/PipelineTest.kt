@@ -17,24 +17,6 @@ class PipelineTest {
     }
 
     @Test
-    fun testPipeline_duplicate() {
-        val expected = listOf(listOf("H", "u", "g", "s", "!"), listOf("H", "u", "g", "s", "!"))
-        assertEquals(expected, Pipeline.from("Hey you guys!").duplicate()
-                .map { it.replace(Regex("[eouy]+"), "")}
-                .map { it.replace(Regex(" +"), "u")}
-                .flatMap { it.split("").stream() }
-                .filter(String::isNotEmpty)
-                .toList())
-
-        assertEquals(listOf("Hugs!", "Hugs!"), Pipeline.from("Hey you guys!").duplicate()
-                .map { it.replace(Regex("[eouy]+"), "")}
-                .map { it.replace(Regex(" +"), "u")}
-                .flatMap { it.split("").stream() }
-                .filter(String::isNotEmpty)
-                .result())
-    }
-
-    @Test
     fun testCombinationsManager_basic() {
         assertEquals("Hugs!", CombinationsManager.combine("Hu", "gs!"))
         assertEquals(3, CombinationsManager.combine(1, 2))

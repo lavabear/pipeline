@@ -3,50 +3,38 @@ package io.inapinch.pipeline
 import java.util.*
 import java.util.stream.Collectors
 import java.util.stream.Stream
-import kotlin.streams.toList
 
-class Pipeline<T : Any> constructor(private val items: Stream<T>) {
+interface Pipeline<T : Any> {
 
-    fun <R: Any> map(operation: (T) -> R): Pipeline<R> = Pipeline(items.map(operation::invoke))
+    fun <R: Any> map(operation: (T) -> R): Pipeline<R>
 
-    fun <R: Any> flatMap(operation: (T) -> Stream<R>): Pipeline<R> = Pipeline(items.flatMap(operation::invoke))
+    fun <R: Any> flatMap(operation: (T) -> Stream<R>) : Pipeline<R>
 
-    fun filter(operation: (T) -> Boolean): Pipeline<T> = Pipeline(items.filter(operation::invoke))
+    fun filter(operation: (T) -> Boolean): Pipeline<T>
 
-    fun toList() : Collection<T> = items.collect(Collectors.toList())
+    fun toList() : Collection<T>
 
-    fun skip(skip : Int = 1) : Pipeline<T> = Pipeline(items.skip(skip.toLong()))
+    fun skip(skip : Int = 1) : Pipeline<T>
 
-    fun result() : Optional<T> = items.reduce { first, second -> CombinationsManager.combine(first, second) as T }
+    fun result() : Optional<T>
 
     companion object {
-        fun <T: Any> from(items: Collection<T>) : Pipeline<T> = Pipeline(items.stream())
-        fun <T: Any> from(vararg items: T) : Pipeline<T> = Pipeline(Arrays.stream(items))
-
-        fun <T : Any> copy(input: Collection<T>, copies: Int = 2) : ParallelPipelines<T> {
-            val result = mutableListOf<Collection<T>>()
-            for (i in 1..copies) {
-                val new = mutableListOf<T>()
-                Collections.copy(input.toMutableList(), new)
-                result.add(new)
-            }
-
-            return ParallelPipelines(result.parallelStream()
-                    .map { from(input) })
-        }
+        fun <T: Any> from(items: Collection<T>) : Pipeline<T> = SinglePipeline(items.stream())
+        fun <T: Any> from(vararg items: T) : Pipeline<T> = SinglePipeline(Arrays.stream(items))
     }
 }
 
-class ParallelPipelines<T : Any>(private val items: Stream<Pipeline<T>>) {
-    fun <R: Any> map(operation: (T) -> R): ParallelPipelines<R> = ParallelPipelines(items.map { it.map(operation::invoke) })
+private class SinglePipeline<T : Any> constructor(private val items: Stream<T>) : Pipeline<T> {
 
-    fun <R: Any> flatMap(operation: (T) -> Stream<R>): ParallelPipelines<R> = ParallelPipelines(items.map {  it.flatMap(operation::invoke) })
+    override fun <R: Any> map(operation: (T) -> R): Pipeline<R> = SinglePipeline(items.map(operation::invoke))
 
-    fun filter(operation: (T) -> Boolean): ParallelPipelines<T> = ParallelPipelines(items.map { it.filter(operation::invoke) })
+    override fun <R: Any> flatMap(operation: (T) -> Stream<R>): Pipeline<R> = SinglePipeline(items.flatMap(operation::invoke))
 
-    fun toList() : Collection<Collection<T>> = items.map{
-        it.toList()
-    }.collect(Collectors.toList())
+    override fun filter(operation: (T) -> Boolean): Pipeline<T> = SinglePipeline(items.filter(operation::invoke))
 
-    fun result() : List<T> = items.map { it.result().get() }.collect(Collectors.toList())
+    override fun toList() : Collection<T> = items.collect(Collectors.toList())
+
+    override fun skip(skip : Int) : Pipeline<T> = SinglePipeline(items.skip(skip.toLong()))
+
+    override fun result() : Optional<T> = items.reduce { first, second -> CombinationsManager.combine(first, second) as T }
 }
