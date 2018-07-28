@@ -1,5 +1,6 @@
 package io.inapinch.pipeline
 
+import io.inapinch.pipeline.operations.*
 import kotlin.reflect.KClass
 
 typealias CombinationEntry = Pair<CombinationPair, Combiner>
@@ -54,13 +55,13 @@ private fun <S : Any, T : Any> reflectionCombiner(methodName: String, first: KCl
 private fun anyOperation(any: Any) : AnyOperation = any as AnyOperation
 
 private fun combiners() : Map<CombinationPair, Combiner> {
-    val combineFunctional: Combiner = { a, b -> FunctionalOperation { t: Any ->  (anyOperation(b).invoke(anyOperation(a).invoke(t))) }}
+    val combineFunctional: Combiner = { a, b -> FunctionalOperation { t: Any -> (anyOperation(b).invoke(anyOperation(a).invoke(t))) } }
     return mapOf(
             reflectionPair("concat", String::class),
 
             *plusPairs(Int::class, Long::class, Float::class, Short::class, Integer::class, Double::class),
 
-            combinationPair({ a, b -> Identity(CombinationsManager.combine(anyOperation(a).invoke(Any()), anyOperation(b).invoke(Any())))}, Identity::class),
+            combinationPair({ a, b -> Identity(CombinationsManager.combine(anyOperation(a).invoke(Any()), anyOperation(b).invoke(Any()))) }, Identity::class),
 
             combinationPair(combineFunctional, FunctionalOperation::class),
             combinationPair(combineFunctional, FunctionalOperation::class, Identity::class),

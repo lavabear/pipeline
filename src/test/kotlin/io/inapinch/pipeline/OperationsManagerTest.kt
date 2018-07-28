@@ -1,5 +1,9 @@
 package io.inapinch.pipeline
 
+import io.inapinch.pipeline.operations.Identity
+import io.inapinch.pipeline.operations.Reduce
+import io.inapinch.pipeline.operations.RegexReplace
+import io.inapinch.pipeline.operations.RegexSplit
 import org.junit.Test
 import kotlin.test.assertEquals
 

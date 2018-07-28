@@ -1,13 +1,13 @@
 package io.inapinch.pipeline
 
 import io.inapinch.db.PipelineDao
+import io.inapinch.pipeline.operations.*
 import org.slf4j.LoggerFactory
 import java.util.*
 import java.util.concurrent.CompletableFuture
 import java.util.concurrent.ConcurrentHashMap
-import java.util.stream.Stream
 
-class OperationsManager(private val pipelineDao: PipelineDao) {
+class OperationsManager(private val pipelineDao: PipelineDao, private val resClient: DestinationClient) {
 
     private val inProgress: MutableMap<String, CompletableFuture<*>> = ConcurrentHashMap()
 
@@ -17,7 +17,15 @@ class OperationsManager(private val pipelineDao: PipelineDao) {
                 .thenApplyAsync { pipelineDao.saveRequest(uuid, it); it }
                 .thenApplyAsync { apply(it) }
                 .thenApplyAsync { pipelineDao.saveResult(uuid, it); it }
-                .exceptionally { val message = "Failed to process pipeline: $uuid\n${it.localizedMessage}"; LOG.error(message, it); message }
+                .thenApplyAsync {
+                    if(request.destination != null)
+                        resClient.send(request.destination, it)
+                    it }
+                .exceptionally {
+                    val message = "Failed to process pipeline: $uuid\n${it.localizedMessage}"
+                    LOG.error(message, it)
+                    message
+                }
         return uuid
     }
 

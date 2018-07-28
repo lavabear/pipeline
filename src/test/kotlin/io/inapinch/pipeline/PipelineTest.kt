@@ -1,5 +1,7 @@
 package io.inapinch.pipeline
 
+import io.inapinch.pipeline.operations.FunctionalOperation
+import io.inapinch.pipeline.operations.Identity
 import org.junit.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse
@@ -39,18 +41,18 @@ class PipelineTest {
     @Test
     fun testCombinationsManager_functional() {
         assertEquals("Hugs!", Identity("Hu")
-                .combine(FunctionalOperation { t ->  t+"gs!" })
+                .combine(FunctionalOperation { t -> t + "gs!" })
                 .invoke(""))
 
-        assertEquals("Hugs!", FunctionalOperation {_: String -> "H"}
-                .combine(FunctionalOperation {t: String -> t+"u"})
-                .combine(FunctionalOperation {t: String -> t+"g"})
-                .combine(FunctionalOperation { t: String -> t+"s" })
+        assertEquals("Hugs!", FunctionalOperation { _: String -> "H" }
+                .combine(FunctionalOperation { t: String -> t + "u" })
+                .combine(FunctionalOperation { t: String -> t + "g" })
+                .combine(FunctionalOperation { t: String -> t + "s" })
                 .combine(FunctionalOperation { t: String -> "$t!" })
                 .invoke(""))
 
-        assertEquals("gs!", FunctionalOperation {_: String -> "Hu"}
-                .combine(Identity ("gs!" ))
+        assertEquals("gs!", FunctionalOperation { _: String -> "Hu" }
+                .combine(Identity("gs!"))
                 .invoke(""))
     }
 }

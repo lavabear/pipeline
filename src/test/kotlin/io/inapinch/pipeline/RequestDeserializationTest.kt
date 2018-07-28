@@ -1,6 +1,7 @@
 package io.inapinch.pipeline
 
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
+import io.inapinch.pipeline.operations.Identity
 import org.junit.Test
 import kotlin.test.assertEquals
 

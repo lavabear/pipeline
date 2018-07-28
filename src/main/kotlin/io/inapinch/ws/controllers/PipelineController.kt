@@ -3,11 +3,10 @@ package io.inapinch.ws.controllers
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.module.kotlin.readValue
 import io.inapinch.db.PipelineDao
-import io.inapinch.pipeline.OperationsManager
-import io.inapinch.pipeline.PipelineRequest
-import io.inapinch.pipeline.PipelineStatus
+import io.inapinch.pipeline.*
 import io.inapinch.ws.WebApplication
 import io.javalin.Context
+import okhttp3.OkHttpClient
 import org.slf4j.LoggerFactory
 import java.time.LocalDateTime
 
@@ -49,7 +48,9 @@ object PipelineController {
         context.renderFreemarker("index.ftl")
     }
 
-    fun prepareController(mapper: ObjectMapper, dao: PipelineDao, manager: OperationsManager = OperationsManager(dao)) {
+    fun prepareController(mapper: ObjectMapper, dao: PipelineDao,
+                          client: DestinationClient = RestDestinationClient(mapper, OkHttpClient.Builder().build()),
+                          manager: OperationsManager = OperationsManager(dao, client)) {
         this.mapper = mapper
         this.dao = dao
         this.manager = manager
