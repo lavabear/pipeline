@@ -20,6 +20,10 @@ interface PipelineDao {
     fun result(id: String) : Optional<Any>
 
     fun request(id: String) : Optional<PipelineRequest>
+
+    companion object {
+        lateinit var instance: PipelineDao
+    }
 }
 
 object DbConfig {
@@ -86,6 +90,7 @@ class PipelineDaoImpl(private val objectMapper: ObjectMapper) : PipelineDao {
         transaction {
             SchemaUtils.create(VerifiedPipelineRequests, VerifiedPipelineResults)
         }
+        PipelineDao.instance = this
     }
 }
 

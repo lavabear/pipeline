@@ -51,6 +51,7 @@ class OperationsManager(private val pipelineDao: PipelineDao, private val resCli
                 pipeline = when(operation) {
                     is Group -> pipeline.map { (it as Collection<Any>).toMutableList().chunked(operation.count) }
                     is Skip -> pipeline.skip(operation.count)
+                    is Run -> pipeline.map { apply(operation.invoke(it as String)) }
                     else -> pipeline.map {  (operation as AnyOperation).invoke(it)  }
                 }
             return pipeline.result().get()
@@ -61,6 +62,7 @@ class OperationsManager(private val pipelineDao: PipelineDao, private val resCli
 data class PipelineRequest(val start: Identity<out Any>,
                            val operations : List<Operation<out Any, out Any>> = listOf(),
                            val destination : Destination? = null,
+                           val name: String? = null,
                            val binding : Map<String, Any> = mapOf())
 
 data class PipelineStatus(val message: String, val result: Any? = null)
