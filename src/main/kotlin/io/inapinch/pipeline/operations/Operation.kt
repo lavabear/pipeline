@@ -34,7 +34,7 @@ data class Identity<T : Any>(@JsonProperty("value") val value: T) : Operation<T,
     override fun invoke(input: T): T = value
 }
 
-data class Run(@JsonProperty("id") val id: String) : Operation<String, PipelineRequest> {
+class Run : Operation<String, PipelineRequest> {
     override fun invoke(input: String): PipelineRequest = PipelineDao.instance.request(input)
             .orElse(PipelineRequest(start = Identity("$input does not exist")))
 }
