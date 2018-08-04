@@ -59,7 +59,7 @@ object PipelineController {
         this.mapper = mapper
         this.dao = dao
         this.manager = manager
-        val url = "http://pinch-pipeline.s3-website-us-west-2.amazonaws.com"
+        val url = "https://pinch-pipeline.s3-website-us-west-2.amazonaws.com"
         this.reactContent = Suppliers.memoizeWithExpiration({ OkHttpClient.Builder()
                 .readTimeout(1, TimeUnit.MINUTES)
                 .build()
