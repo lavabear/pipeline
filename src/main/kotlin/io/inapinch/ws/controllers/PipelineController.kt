@@ -2,17 +2,20 @@ package io.inapinch.ws.controllers
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.module.kotlin.readValue
+import com.google.common.base.Supplier
 import com.google.common.base.Suppliers
 import io.inapinch.db.PipelineDao
 import io.inapinch.pipeline.*
 import io.inapinch.ws.WebApplication
 import io.javalin.Context
+import okhttp3.MediaType
 import okhttp3.OkHttpClient
 import okhttp3.Request
+import okhttp3.ResponseBody
 import org.slf4j.LoggerFactory
+import java.time.Duration
 import java.time.LocalDateTime
 import java.util.concurrent.TimeUnit
-import java.util.function.Supplier
 
 data class Status(val message: String, val timestamp: LocalDateTime = LocalDateTime.now())
 
@@ -23,12 +26,18 @@ object PipelineController {
     private lateinit var manager: OperationsManager
     private lateinit var mapper: ObjectMapper
     private lateinit var reactContent: Supplier<String>
+    private lateinit var reactStaticContent: Map<String, Supplier<ResponseBody?>>
 
     fun newRequest(context: Context) {
         val request : PipelineRequest = mapper.readValue(context.body())
 
         context.header("Location", manager.enqueue(request))
         context.status(202)
+    }
+
+    fun staticContent(context: Context) {
+        val static = reactStaticContent.getOrElse("") { Suppliers.memoizeWithExpiration({ get(context.path()) }, 30, TimeUnit.MINUTES)}
+        context.result(static.get()?.string() ?: "Not Found")
     }
 
     fun pipelineStatus(context: Context) {
@@ -59,20 +68,20 @@ object PipelineController {
         this.mapper = mapper
         this.dao = dao
         this.manager = manager
-        val url = "https://pinch-pipeline.s3-website-us-west-2.amazonaws.com"
-        this.reactContent = Suppliers.memoizeWithExpiration({ OkHttpClient.Builder()
-                .readTimeout(1, TimeUnit.MINUTES)
-                .build()
-                .newCall(Request.Builder()
-                        .get().url(url)
-                        .build())
-                .execute().body()!!
+        this.reactContent = Suppliers.memoizeWithExpiration({ get(STATIC_CONTENT_URL)!!
                 .string()
-                .replace("<noscript>You need to enable JavaScript to run this app.</noscript>", "")
-                .replace("src=\"/", "src=\"$url/")
-                .replace("href=\"/", "href=\"$url/") },
+                .replace("<noscript>You need to enable JavaScript to run this app.</noscript>", "") },
                 30, TimeUnit.MINUTES)
     }
-}
 
+    private fun get(url: String, timeout: Duration = Duration.ofMinutes(1)): ResponseBody? = OkHttpClient.Builder()
+            .readTimeout(timeout.toMinutes(), TimeUnit.MINUTES)
+            .build()
+            .newCall(Request.Builder().get().url(url)
+                    .build())
+            .execute()
+            .body()
+
+    private const val STATIC_CONTENT_URL = "http://pinch-pipeline.s3-website-us-west-2.amazonaws.com"
+}
 data class PipelineError(val error: String)

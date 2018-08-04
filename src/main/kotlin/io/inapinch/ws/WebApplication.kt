@@ -33,6 +33,8 @@ class WebApplication {
                     }
                 }
 
+                error(404, PipelineController::staticContent)
+
                 exception(Exception::class.java, PipelineController::error)
                 JavalinJacksonPlugin.configure(objectMapper)
             }.start()
