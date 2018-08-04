@@ -6,7 +6,7 @@ import kotlin.streams.toList
 
 data class CreateDate(val keys: List<String> = listOf(), val key: String,
                       val format: String, val remove: Boolean = false)
-    :  FunctionalOperation<Map<String, Any>, Map<String, Any>>({
+    :  MapOperation ({
     val map = it.toMutableMap()
     map[key] = LocalDate.parse(keys.stream()
             .map { k -> it[k] as String }.toList()

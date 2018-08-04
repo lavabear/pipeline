@@ -49,7 +49,8 @@ class OperationsManager(private val pipelineDao: PipelineDao, private val resCli
             var pipeline : Pipeline<out Any> = Pipeline.from(request.start.value)
             for(operation in request.operations)
                 pipeline = when(operation) {
-                    is Group -> pipeline.map { (it as Collection<Any>).toMutableList().chunked(operation.count) }
+                    is Group -> pipeline.map { (it as? Collection<*>)?.toMutableList()?.chunked(operation.count)
+                            ?: Collections.singletonList(Collections.singletonList(it)) }
                     is Skip -> pipeline.skip(operation.count)
                     is Run -> pipeline.map { apply(operation.invoke(it as String)) }
                     else -> pipeline.map {  (operation as AnyOperation).invoke(it)  }

@@ -2,13 +2,17 @@ package io.inapinch.ws.controllers
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.module.kotlin.readValue
+import com.google.common.base.Suppliers
 import io.inapinch.db.PipelineDao
 import io.inapinch.pipeline.*
 import io.inapinch.ws.WebApplication
 import io.javalin.Context
 import okhttp3.OkHttpClient
+import okhttp3.Request
 import org.slf4j.LoggerFactory
 import java.time.LocalDateTime
+import java.util.concurrent.TimeUnit
+import java.util.function.Supplier
 
 data class Status(val message: String, val timestamp: LocalDateTime = LocalDateTime.now())
 
@@ -18,6 +22,7 @@ object PipelineController {
     private lateinit var dao: PipelineDao
     private lateinit var manager: OperationsManager
     private lateinit var mapper: ObjectMapper
+    private lateinit var reactContent: Supplier<String>
 
     fun newRequest(context: Context) {
         val request : PipelineRequest = mapper.readValue(context.body())
@@ -45,7 +50,7 @@ object PipelineController {
     }
 
     fun landingPage(context: Context) {
-        context.renderFreemarker("index.ftl")
+        context.html(reactContent.get())
     }
 
     fun prepareController(mapper: ObjectMapper, dao: PipelineDao,
@@ -54,6 +59,14 @@ object PipelineController {
         this.mapper = mapper
         this.dao = dao
         this.manager = manager
+        this.reactContent = Suppliers.memoizeWithExpiration({ OkHttpClient.Builder()
+                .readTimeout(1, TimeUnit.MINUTES)
+                .build()
+                .newCall(Request.Builder()
+                        .get().url("http://pinch-pipeline.s3-website-us-west-2.amazonaws.com")
+                        .build())
+                .execute().body()!!
+                .string() }, 30, TimeUnit.MINUTES)
     }
 }
 

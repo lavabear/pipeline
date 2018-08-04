@@ -25,6 +25,7 @@ interface Operation<T, R> {
     }
 }
 
+typealias MapOperation = FunctionalOperation<Map<String, Any>, Map<String, Any>>
 typealias AnyOperation = Operation<Any, Any>
 
 open class FunctionalOperation<T, R>(@JsonIgnore private val value: (T) -> R)

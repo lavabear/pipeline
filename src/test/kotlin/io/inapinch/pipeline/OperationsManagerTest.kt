@@ -29,6 +29,6 @@ class OperationsManagerTest {
     @Test
     fun testPipelineRequest_regexSplitReduce() {
         assertEquals("AA", OperationsManager.apply(PipelineRequest(Identity("HAHA"),
-                listOf(RegexSplit("H"), Reduce<String>()))))
+                listOf(RegexSplit("H"), Reduce()))))
     }
 }
