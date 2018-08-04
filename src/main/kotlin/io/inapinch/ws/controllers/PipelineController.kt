@@ -4,17 +4,18 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.module.kotlin.readValue
 import com.google.common.base.Supplier
 import com.google.common.base.Suppliers
+import com.google.common.collect.Maps
 import io.inapinch.db.PipelineDao
 import io.inapinch.pipeline.*
 import io.inapinch.ws.WebApplication
 import io.javalin.Context
-import okhttp3.MediaType
 import okhttp3.OkHttpClient
 import okhttp3.Request
 import okhttp3.ResponseBody
 import org.slf4j.LoggerFactory
 import java.time.Duration
 import java.time.LocalDateTime
+import java.util.concurrent.CompletableFuture
 import java.util.concurrent.TimeUnit
 
 data class Status(val message: String, val timestamp: LocalDateTime = LocalDateTime.now())
@@ -26,7 +27,7 @@ object PipelineController {
     private lateinit var manager: OperationsManager
     private lateinit var mapper: ObjectMapper
     private lateinit var reactContent: Supplier<String>
-    private lateinit var reactStaticContent: Map<String, Supplier<ResponseBody?>>
+    private lateinit var reactStaticContent: MutableMap<String, Supplier<ResponseBody?>>
 
     fun newRequest(context: Context) {
         val request : PipelineRequest = mapper.readValue(context.body())
@@ -36,7 +37,13 @@ object PipelineController {
     }
 
     fun staticContent(context: Context) {
-        val static = reactStaticContent.getOrElse("") { Suppliers.memoizeWithExpiration({ get(context.path()) }, 30, TimeUnit.MINUTES)}
+        val path = context.path()
+        val static = reactStaticContent.getOrElse(path) {
+            val result = Suppliers.memoizeWithExpiration({ get(path) }, 30, TimeUnit.MINUTES)
+            reactStaticContent[path] = result
+            result}
+        if(static.get() != null)
+            context.status(200)
         context.result(static.get()?.string() ?: "Not Found")
     }
 
@@ -68,7 +75,8 @@ object PipelineController {
         this.mapper = mapper
         this.dao = dao
         this.manager = manager
-        this.reactContent = Suppliers.memoizeWithExpiration({ get(STATIC_CONTENT_URL)!!
+        reactStaticContent = Maps.newConcurrentMap()
+        this.reactContent = Suppliers.memoizeWithExpiration({ get("")!!
                 .string()
                 .replace("<noscript>You need to enable JavaScript to run this app.</noscript>", "") },
                 30, TimeUnit.MINUTES)
@@ -77,8 +85,7 @@ object PipelineController {
     private fun get(url: String, timeout: Duration = Duration.ofMinutes(1)): ResponseBody? = OkHttpClient.Builder()
             .readTimeout(timeout.toMinutes(), TimeUnit.MINUTES)
             .build()
-            .newCall(Request.Builder().get().url(url)
-                    .build())
+            .newCall(Request.Builder().get().url("$STATIC_CONTENT_URL/$url").build())
             .execute()
             .body()
 
