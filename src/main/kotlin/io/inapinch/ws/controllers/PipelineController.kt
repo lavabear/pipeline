@@ -69,7 +69,7 @@ object PipelineController {
                 .execute().body()!!
                 .string()
                 .replace("<noscript>You need to enable JavaScript to run this app.</noscript>", "")
-                .replace("src=\"/", "src=\"/$url/")
+                .replace("src=\"/", "src=\"$url/")
                 .replace("href=\"/", "href=\"$url/") },
                 30, TimeUnit.MINUTES)
     }
