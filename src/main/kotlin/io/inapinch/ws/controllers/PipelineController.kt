@@ -59,14 +59,19 @@ object PipelineController {
         this.mapper = mapper
         this.dao = dao
         this.manager = manager
+        val url = "http://pinch-pipeline.s3-website-us-west-2.amazonaws.com"
         this.reactContent = Suppliers.memoizeWithExpiration({ OkHttpClient.Builder()
                 .readTimeout(1, TimeUnit.MINUTES)
                 .build()
                 .newCall(Request.Builder()
-                        .get().url("http://pinch-pipeline.s3-website-us-west-2.amazonaws.com")
+                        .get().url(url)
                         .build())
                 .execute().body()!!
-                .string() }, 30, TimeUnit.MINUTES)
+                .string()
+                .replace("<noscript>You need to enable JavaScript to run this app.</noscript>", "")
+                .replace("src=\"/", "src=\"/$url/")
+                .replace("href=\"/", "href=\"$url/") },
+                30, TimeUnit.MINUTES)
     }
 }
 
