@@ -37,7 +37,7 @@ object PipelineController {
     }
 
     fun staticContent(context: Context) {
-        val path = context.path()
+        val path = context.matchedPath()
         val static = reactStaticContent.getOrElse(path) {
             val result = Suppliers.memoizeWithExpiration({ get(path) }, 30, TimeUnit.MINUTES)
             reactStaticContent[path] = result
