@@ -15,7 +15,6 @@ import okhttp3.ResponseBody
 import org.slf4j.LoggerFactory
 import java.time.Duration
 import java.time.LocalDateTime
-import java.util.concurrent.CompletableFuture
 import java.util.concurrent.TimeUnit
 
 data class Status(val message: String, val timestamp: LocalDateTime = LocalDateTime.now())
@@ -27,7 +26,7 @@ object PipelineController {
     private lateinit var manager: OperationsManager
     private lateinit var mapper: ObjectMapper
     private lateinit var reactContent: Supplier<String>
-    private lateinit var reactStaticContent: MutableMap<String, Supplier<ResponseBody?>>
+    private lateinit var reactStaticContent: MutableMap<String, Supplier<String>>
 
     fun newRequest(context: Context) {
         val request : PipelineRequest = mapper.readValue(context.body())
@@ -37,14 +36,14 @@ object PipelineController {
     }
 
     fun staticContent(context: Context) {
-        val path = context.matchedPath()
+        val path = context.request().servletPath
         val static = reactStaticContent.getOrElse(path) {
-            val result = Suppliers.memoizeWithExpiration({ get(path) }, 30, TimeUnit.MINUTES)
+            val result = Suppliers.memoizeWithExpiration({ get(path)!!.string() }, 30, TimeUnit.MINUTES)
             reactStaticContent[path] = result
             result}
         if(static.get() != null)
             context.status(200)
-        context.result(static.get()?.string() ?: "Not Found")
+        context.result(static.get() ?: "Not Found")
     }
 
     fun pipelineStatus(context: Context) {
@@ -85,7 +84,7 @@ object PipelineController {
     private fun get(url: String, timeout: Duration = Duration.ofMinutes(1)): ResponseBody? = OkHttpClient.Builder()
             .readTimeout(timeout.toMinutes(), TimeUnit.MINUTES)
             .build()
-            .newCall(Request.Builder().get().url("$STATIC_CONTENT_URL/$url").build())
+            .newCall(Request.Builder().get().url("$STATIC_CONTENT_URL$url").build())
             .execute()
             .body()
 
