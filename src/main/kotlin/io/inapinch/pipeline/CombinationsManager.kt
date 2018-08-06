@@ -61,25 +61,25 @@ private fun combiners() : Map<CombinationPair, Combiner> {
 
             *plusPairs(Int::class, Long::class, Float::class, Short::class, Integer::class, Double::class),
 
-            combinationPair({ a, b -> Identity(CombinationsManager.combine(anyOperation(a).invoke(Any()), anyOperation(b).invoke(Any()))) }, Identity::class),
+            combinationPair({ a, b -> Start(CombinationsManager.combine(anyOperation(a).invoke(Any()), anyOperation(b).invoke(Any()))) }, Start::class),
 
             combinationPair(combineFunctional, FunctionalOperation::class),
-            combinationPair(combineFunctional, FunctionalOperation::class, Identity::class),
-            combinationPair(combineFunctional, Identity::class, FunctionalOperation::class),
+            combinationPair(combineFunctional, FunctionalOperation::class, Start::class),
+            combinationPair(combineFunctional, Start::class, FunctionalOperation::class),
 
-            combinationPair(combineFunctional, Identity::class, RegexReplace::class),
+            combinationPair(combineFunctional, Start::class, RegexReplace::class),
             combinationPair(combineFunctional, FunctionalOperation::class, RegexReplace::class),
 
-            combinationPair(combineFunctional, Identity::class, Reduce::class),
+            combinationPair(combineFunctional, Start::class, Reduce::class),
             combinationPair(combineFunctional, FunctionalOperation::class, Reduce::class),
 
-            combinationPair(combineFunctional, Identity::class, GetHtml::class),
+            combinationPair(combineFunctional, Start::class, GetHtml::class),
             combinationPair(combineFunctional, FunctionalOperation::class, GetHtml::class),
 
-            combinationPair(combineFunctional, Identity::class, GetJson::class),
+            combinationPair(combineFunctional, Start::class, GetJson::class),
             combinationPair(combineFunctional, FunctionalOperation::class, GetJson::class),
 
-            combinationPair(combineFunctional, Identity::class, RegexSplit::class),
+            combinationPair(combineFunctional, Start::class, RegexSplit::class),
             combinationPair(combineFunctional, FunctionalOperation::class, RegexSplit::class)
     )
 }

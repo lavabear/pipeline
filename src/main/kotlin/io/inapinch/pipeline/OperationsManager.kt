@@ -60,7 +60,7 @@ class OperationsManager(private val pipelineDao: PipelineDao, private val resCli
     }
 }
 
-data class PipelineRequest(val start: Identity<out Any>,
+data class PipelineRequest(val start: Start<out Any>,
                            val operations : List<Operation<out Any, out Any>> = listOf(),
                            val destination : Destination? = null,
                            val name: String? = null,

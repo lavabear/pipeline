@@ -11,7 +11,7 @@ import io.inapinch.pipeline.PipelineRequest
 
 @FunctionalInterface
 @JsonTypeInfo(use=JsonTypeInfo.Id.NAME, include=JsonTypeInfo.As.PROPERTY, property="@type")
-@JsonSubTypes(Type(Identity::class), Type(Reduce::class), Type(Group::class), Type(ToInt::class),
+@JsonSubTypes(Type(Start::class), Type(Reduce::class), Type(Group::class), Type(ToInt::class),
         Type(GetHtml::class), Type(GetJson::class), Type(Object::class), Type(Apply::class), Type(Remove::class),
         Type(CreateDate::class), Type(Skip::class), Type(ToDateTime::class), Type(Add::class),
         Type(HtmlSelect::class), Type(Run::class),
@@ -31,11 +31,11 @@ typealias AnyOperation = Operation<Any, Any>
 open class FunctionalOperation<T, R>(@JsonIgnore private val value: (T) -> R)
     : Operation<T, R> { override fun invoke(input: T) : R = value.invoke(input) }
 
-data class Identity<T : Any>(@JsonProperty("value") val value: T) : Operation<T, T> {
+data class Start<T : Any>(@JsonProperty("value") val value: T) : Operation<T, T> {
     override fun invoke(input: T): T = value
 }
 
 class Run : Operation<String, PipelineRequest> {
     override fun invoke(input: String): PipelineRequest = PipelineDao.instance.request(input)
-            .orElse(PipelineRequest(start = Identity("$input does not exist")))
+            .orElse(PipelineRequest(start = Start("$input does not exist")))
 }

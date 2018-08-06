@@ -1,9 +1,11 @@
 package io.inapinch.pipeline
 
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
-import io.inapinch.pipeline.operations.Identity
+import io.inapinch.pipeline.operations.Start
 import org.junit.Test
 import kotlin.test.assertEquals
+
+val objectMapper = jacksonObjectMapper()
 
 class RequestDeserializationTest {
 
@@ -13,14 +15,13 @@ class RequestDeserializationTest {
             {
                 "start":
                     {
-                        "@type": "Identity",
+                        "@type": "Start",
                         "value": 4
                     }
             }
         """.trimIndent()
-        val objectMapper = jacksonObjectMapper()
         val pipelineRequest = objectMapper.readValue(request, PipelineRequest::class.java)
-        val expected = PipelineRequest(Identity(4))
+        val expected = PipelineRequest(Start(4))
         assertEquals(expected, pipelineRequest)
     }
 
@@ -29,7 +30,7 @@ class RequestDeserializationTest {
         val request = """
             {
             "start": {
-                        "@type": "Identity",
+                        "@type": "Start",
                         "value": "Hello"
                     },
             "operations": [{
@@ -42,7 +43,6 @@ class RequestDeserializationTest {
                 ]
             }
         """.trimIndent()
-        val objectMapper = jacksonObjectMapper()
         val pipelineRequest = objectMapper.readValue(request, PipelineRequest::class.java)
         val expected = "Heo"
         assertEquals(expected, OperationsManager.apply(pipelineRequest))

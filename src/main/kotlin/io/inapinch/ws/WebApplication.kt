@@ -23,6 +23,9 @@ class WebApplication {
                         path("api") {
                             get(PipelineController::status)
                             post(PipelineController::newRequest)
+                            path("commands") {
+                                get(PipelineController::commands)
+                            }
                             path(":id") {
                                 get(PipelineController::pipelineStatus)
                                 path("operations") {

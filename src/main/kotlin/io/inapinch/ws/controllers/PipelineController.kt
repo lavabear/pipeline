@@ -7,6 +7,7 @@ import com.google.common.base.Suppliers
 import com.google.common.collect.Maps
 import io.inapinch.db.PipelineDao
 import io.inapinch.pipeline.*
+import io.inapinch.pipeline.operations.CommandUsage
 import io.inapinch.ws.WebApplication
 import io.javalin.Context
 import okhttp3.OkHttpClient
@@ -26,6 +27,7 @@ object PipelineController {
     private lateinit var manager: OperationsManager
     private lateinit var mapper: ObjectMapper
     private lateinit var reactContent: Supplier<String>
+    private lateinit var commands: Supplier<List<CommandUsage>>
     private lateinit var reactStaticContent: MutableMap<String, Supplier<String>>
 
     fun newRequest(context: Context) {
@@ -68,6 +70,10 @@ object PipelineController {
         context.html(reactContent.get())
     }
 
+    fun commands(context: Context) {
+        context.json(commands.get())
+    }
+
     fun prepareController(mapper: ObjectMapper, dao: PipelineDao,
                           client: DestinationClient = RestDestinationClient(mapper, OkHttpClient.Builder().build()),
                           manager: OperationsManager = OperationsManager(dao, client)) {
@@ -75,6 +81,7 @@ object PipelineController {
         this.dao = dao
         this.manager = manager
         reactStaticContent = Maps.newConcurrentMap()
+        commands = Suppliers.memoize { CommandUsage.all() }
         this.reactContent = Suppliers.memoizeWithExpiration({ get("")!!
                 .string()
                 .replace("<noscript>You need to enable JavaScript to run this app.</noscript>", "") },
@@ -90,4 +97,5 @@ object PipelineController {
 
     private const val STATIC_CONTENT_URL = "http://pinch-pipeline.s3-website-us-west-2.amazonaws.com"
 }
+
 data class PipelineError(val error: String)
