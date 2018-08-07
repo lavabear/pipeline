@@ -5,7 +5,7 @@ import kotlin.reflect.KClass
 import kotlin.reflect.KType
 
 enum class DataType {
-    STRING, UUID, INT, LIST, MAP, ANY, NONE, DATE, DATE_TIME, BOOL, URL;
+    STRING, UUID, INT, LIST, MAP, ANY, NONE, DATE, DATE_TIME, BOOL, URL, OPERATION, SET;
 
     companion object {
         fun of(vararg types: DataType) : List<DataType> = types.toList()
@@ -19,7 +19,9 @@ enum class DataType {
                     when(classifier.simpleName) {
                         "String" -> of(DataType.STRING)
                         "List" -> of(DataType.LIST, *from(type.arguments.first().type).toTypedArray())
+                        "Set" -> of(DataType.SET, *from(type.arguments.first().type).toTypedArray())
                         "Map" -> of(DataType.MAP, *type.arguments.flatMap { from(it.type) }.toTypedArray())
+                        "Operation" -> of(DataType.OPERATION)
                         "PipelineRequest" -> of(DataType.ANY)
                         "Int" -> of(DataType.INT)
                         "Boolean" -> of(DataType.BOOL)

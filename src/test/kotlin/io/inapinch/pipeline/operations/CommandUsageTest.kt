@@ -1,9 +1,6 @@
 package io.inapinch.pipeline.operations
 
 import org.junit.Test
-import java.time.LocalDate
-import java.util.*
-import kotlin.reflect.full.starProjectedType
 import kotlin.test.assertEquals
 
 class CommandUsageTest {
@@ -49,14 +46,26 @@ class CommandUsageTest {
     }
 
     @Test
-    fun testCommandUsageForToDate()
+    fun testCommandUsageForCreateDate()
     {
         val actual = CommandUsage.commandUsage(CreateDate::class)
-        val expected = CommandUsage("CreateDate", arguments = listOf(
-                CommandArgument("keys", DataType.of(DataType.LIST, DataType.STRING)),
-                CommandArgument("key", DataType.of(DataType.STRING)),
-                CommandArgument("format", DataType.of(DataType.STRING)),
-                CommandArgument("remove", DataType.of(DataType.BOOL), required = false)),
+        val expected = CommandUsage("CreateDate",
+                arguments = listOf(CommandArgument("keys", DataType.of(DataType.LIST, DataType.STRING)),
+                    CommandArgument("key", DataType.of(DataType.STRING)),
+                    CommandArgument("format", DataType.of(DataType.STRING)),
+                    CommandArgument("remove", DataType.of(DataType.BOOL), required = false)),
+                inputType = DataType.of(DataType.MAP, DataType.STRING, DataType.ANY),
+                outputType = DataType.of(DataType.MAP, DataType.STRING, DataType.ANY))
+        assertEquals(expected, actual)
+    }
+
+    @Test
+    fun testCommandUsageForApplyKeys()
+    {
+        val actual = CommandUsage.commandUsage(ApplyKeys::class)
+        val expected = CommandUsage("ApplyKeys",
+                arguments = listOf(CommandArgument("keys", DataType.of(DataType.SET, DataType.STRING)),
+                        CommandArgument("operation", DataType.of(DataType.OPERATION))),
                 inputType = DataType.of(DataType.MAP, DataType.STRING, DataType.ANY),
                 outputType = DataType.of(DataType.MAP, DataType.STRING, DataType.ANY))
         assertEquals(expected, actual)

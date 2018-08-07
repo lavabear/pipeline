@@ -3,7 +3,6 @@ package io.inapinch.pipeline.operations
 import com.fasterxml.jackson.annotation.JsonSubTypes
 import kotlin.reflect.KClass
 import kotlin.reflect.KType
-import io.inapinch.pipeline.operations.CommandArgument.Companion.from
 
 data class CommandUsage(val command: String,
                         val arguments: List<CommandArgument> = listOf(),
@@ -22,7 +21,7 @@ data class CommandUsage(val command: String,
                     command = command,
                     inputType = inputType(command, parentTypes),
                     outputType = outputType(command, parentTypes),
-                    arguments = if(type.constructors.isEmpty()) listOf() else from(type.constructors.first()))
+                    arguments = if(type.constructors.isEmpty()) listOf() else CommandArgument.from(type.constructors.first()))
         }
     }
 }
