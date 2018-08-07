@@ -70,4 +70,15 @@ class CommandUsageTest {
                 outputType = DataType.of(DataType.MAP, DataType.STRING, DataType.ANY))
         assertEquals(expected, actual)
     }
+
+    @Test
+    fun testCommandUsageForAdd()
+    {
+        val actual = CommandUsage.commandUsage(Add::class)
+        val expected = CommandUsage("Add",
+                arguments = listOf(CommandArgument("entries", DataType.of(DataType.SET, DataType.ENTRY))),
+                inputType = DataType.of(DataType.MAP, DataType.STRING, DataType.ANY),
+                outputType = DataType.of(DataType.MAP, DataType.STRING, DataType.ANY))
+        assertEquals(expected, actual)
+    }
 }
