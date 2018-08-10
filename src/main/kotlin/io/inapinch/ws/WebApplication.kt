@@ -13,6 +13,8 @@ class WebApplication {
             Javalin.create().apply {
                 enableStandardRequestLogging()
                 enableDynamicGzip()
+                enableCorsForOrigin("localhost:3000") // enables cors for the specified origin(s)
+
                 port(port)
 
                 PipelineController.prepareController(objectMapper, pipelineDao)
