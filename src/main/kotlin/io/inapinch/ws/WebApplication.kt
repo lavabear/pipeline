@@ -13,7 +13,7 @@ class WebApplication {
             Javalin.create().apply {
                 enableStandardRequestLogging()
                 enableDynamicGzip()
-                enableCorsForOrigin("localhost:3000") // enables cors for the specified origin(s)
+                enableCorsForOrigin("http://localhost:3000") // enables cors for the specified origin(s)
 
                 port(port)
 
