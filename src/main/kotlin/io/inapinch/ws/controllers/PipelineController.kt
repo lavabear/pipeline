@@ -28,7 +28,7 @@ object PipelineController {
     private lateinit var mapper: ObjectMapper
     private lateinit var reactContent: Supplier<String>
     private lateinit var commands: Supplier<List<CommandUsage>>
-    private lateinit var reactStaticContent: MutableMap<String, Supplier<String>>
+    private lateinit var reactStaticContent: MutableMap<String, Supplier<Pair<String, String>>>
 
     fun newRequest(context: Context) {
         val request : PipelineRequest = mapper.readValue(context.body())
@@ -40,12 +40,14 @@ object PipelineController {
     fun staticContent(context: Context) {
         val path = context.request().servletPath
         val static = reactStaticContent.getOrElse(path) {
-            val result = Suppliers.memoizeWithExpiration({ get(path)!!.string() }, 30, TimeUnit.MINUTES)
+            val result = Suppliers.memoizeWithExpiration({
+                val response = get(path)!!
+                Pair(response.contentType().toString(), response.string()) }, 30, TimeUnit.MINUTES)
             reactStaticContent[path] = result
-            result}
-        if(static.get() != null)
-            context.status(200)
-        context.result(static.get() ?: "Not Found")
+            result}.get()
+        context.status(200)
+        context.contentType(static.first)
+        context.result(static.second)
     }
 
     fun pipelineStatus(context: Context) {
