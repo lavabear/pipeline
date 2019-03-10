@@ -14,14 +14,13 @@ import org.kodein.di.generic.instance
 data class WebApplication(override val kodein: Kodein) : KodeinAware {
     private val controller: PipelineController by kodein.instance()
     private val objectMapper: ObjectMapper by kodein.instance()
-    private val port: Int by kodein.instance("port")
+    private val port: Int by kodein.instance("server-port")
     private val pipelineDao: PipelineDao by kodein.instance()
 
     fun start() {
         Scheduler.start(pipelineDao)
 
         Javalin.create().apply {
-            port(port)
             enableCorsForOrigin("*") // enables cors for the specified origin(s)
 
             JavalinJackson.configure(objectMapper)
@@ -44,6 +43,6 @@ data class WebApplication(override val kodein: Kodein) : KodeinAware {
             }
 
             exception(Exception::class.java, controller::error)
-        }.start()
+        }.start(port)
     }
 }
