@@ -1,16 +1,11 @@
-import React from 'react';
 import ReactDOM from 'react-dom';
-import { Router } from 'react-router-dom'
 import './index.css';
-import App from './App';
-import registerServiceWorker from './registerServiceWorker';
-import createBrowserHistory from 'history/createBrowserHistory'
+import 'bootstrap/dist/css/bootstrap.css';
+import { makeMainRoutes } from './routes';
 
-const history = createBrowserHistory();
+const routes = makeMainRoutes();
 
 ReactDOM.render(
-    <Router history={history}>
-        <App />
-    </Router>,
-    document.getElementById('root'));
-registerServiceWorker();
+  routes,
+  document.getElementById('root')
+);
