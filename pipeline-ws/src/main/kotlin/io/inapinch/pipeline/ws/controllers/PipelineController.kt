@@ -75,7 +75,7 @@ class PipelineController(private val mapper: ObjectMapper,
 
     fun error(e: Exception, context: Context) {
         LOG.error(e.localizedMessage, e)
-        context.json(PipelineError(e.message ?: e.localizedMessage))
+        context.result(e.message ?: e.localizedMessage)
     }
 
     fun status(context: Context) {
