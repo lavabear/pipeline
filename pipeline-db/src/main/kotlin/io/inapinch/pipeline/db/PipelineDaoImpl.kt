@@ -1,5 +1,6 @@
 package io.inapinch.pipeline.db
 
+import com.cronutils.model.CronType
 import com.cronutils.model.definition.CronDefinitionBuilder
 import com.cronutils.parser.CronParser
 import com.fasterxml.jackson.databind.ObjectMapper
@@ -69,7 +70,7 @@ class PipelineDaoImpl(private val objectMapper: ObjectMapper, dataSource: DataSo
     }
 
     override fun scheduledItems(): List<ScheduledItem> {
-        val parser = CronParser(CronDefinitionBuilder.defineCron().instance())
+        val parser = CronParser(CronDefinitionBuilder.instanceDefinitionFor(CronType.QUARTZ))
         return transaction {
             ScheduledItems.selectAll()
                     .map {
