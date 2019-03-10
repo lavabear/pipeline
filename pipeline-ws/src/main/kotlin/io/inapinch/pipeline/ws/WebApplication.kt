@@ -5,7 +5,7 @@ import io.inapinch.pipeline.db.PipelineDao
 import io.inapinch.pipeline.scheduling.Scheduler
 import io.inapinch.pipeline.ws.controllers.PipelineController
 import io.javalin.Javalin
-import io.javalin.apibuilder.ApiBuilder.path
+import io.javalin.apibuilder.ApiBuilder.*
 import io.javalin.json.JavalinJackson
 import org.kodein.di.Kodein
 import org.kodein.di.KodeinAware
@@ -29,13 +29,13 @@ data class WebApplication(override val kodein: Kodein) : KodeinAware {
             routes {
                 path("pipeline") {
                     path("api") {
-                        get("", controller::status)
-                        post("", controller::newRequest)
+                        get(controller::status)
+                        post(controller::newRequest)
                         post("cl", controller::newRequestFromCommandLanguage)
                         get("commands", controller::commands)
 
-                        get(":id", controller::pipelineStatus)
                         path(":id") {
+                            get(controller::pipelineStatus)
                             post("schedule", controller::newScheduledItem)
                             get("operations", controller::pipelineRequest)
                         }
