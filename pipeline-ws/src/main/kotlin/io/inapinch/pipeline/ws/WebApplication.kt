@@ -1,11 +1,12 @@
 package io.inapinch.pipeline.ws
 
 import com.fasterxml.jackson.databind.ObjectMapper
+import io.inapinch.pipeline.db.PipelineDao
+import io.inapinch.pipeline.scheduling.Scheduler
 import io.inapinch.pipeline.ws.controllers.PipelineController
-import io.javalin.ApiBuilder.*
 import io.javalin.Javalin
-import io.javalin.core.util.Util
-import io.javalin.translator.json.JavalinJacksonPlugin
+import io.javalin.apibuilder.ApiBuilder.path
+import io.javalin.json.JavalinJackson
 import org.kodein.di.Kodein
 import org.kodein.di.KodeinAware
 import org.kodein.di.generic.instance
@@ -14,31 +15,31 @@ data class WebApplication(override val kodein: Kodein) : KodeinAware {
     private val controller: PipelineController by kodein.instance()
     private val objectMapper: ObjectMapper by kodein.instance()
     private val port: Int by kodein.instance("port")
+    private val pipelineDao: PipelineDao by kodein.instance()
 
     fun start() {
-        Util.noServerHasBeenStarted = false //  Hide Annoying Javalin Message, app takes more than a second to start
+        Scheduler.start(pipelineDao)
 
         Javalin.create().apply {
             port(port)
-            enableStandardRequestLogging()
-            enableDynamicGzip()
             enableCorsForOrigin("*") // enables cors for the specified origin(s)
 
-            JavalinJacksonPlugin.configure(objectMapper)
+            JavalinJackson.configure(objectMapper)
 
             routes {
                 path("pipeline") {
                     path("api") {
-                        get(controller::status)
-                        post(controller::newRequest)
+                        get("", controller::status)
+                        post("", controller::newRequest)
                         post("cl", controller::newRequestFromCommandLanguage)
                         path("commands") {
-                            get(controller::commands)
+                            get("", controller::commands)
                         }
                         path(":id") {
-                            get(controller::pipelineStatus)
+                            get("", controller::pipelineStatus)
+                            post("schedule", controller::newScheduledItem)
                             path("operations") {
-                                get(controller::pipelineRequest)
+                                get("", controller::pipelineRequest)
                             }
                         }
                     }

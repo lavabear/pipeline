@@ -8,6 +8,7 @@ import com.fasterxml.jackson.annotation.JsonTypeInfo
 import io.inapinch.pipeline.db.PipelineDao
 import io.inapinch.pipeline.CombinationsHandler
 import io.inapinch.pipeline.PipelineRequest
+import java.util.*
 
 @FunctionalInterface
 @JsonTypeInfo(use=JsonTypeInfo.Id.NAME, include=JsonTypeInfo.As.PROPERTY, property="@type")
@@ -33,7 +34,7 @@ data class Start<T : Any>(@JsonProperty("value") val value: T) : Operation<T, T>
     override fun invoke(input: T): T = value
 }
 
-class Run : Operation<String, PipelineRequest> {
-    override fun invoke(input: String): PipelineRequest = PipelineDao.instance.request(input)
+class Run : Operation<UUID, PipelineRequest> {
+    override fun invoke(input: UUID): PipelineRequest = PipelineDao.instance.request(input)
             .orElse(PipelineRequest(start = Start("$input does not exist")))
 }

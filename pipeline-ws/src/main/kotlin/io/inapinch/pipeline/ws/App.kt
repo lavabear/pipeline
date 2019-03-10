@@ -19,9 +19,10 @@ val pipelineModule = Kodein.Module("pipelineModule") {
 }
 
 val appModule = Kodein.Module("appModule") {
-    bind<Int>("port") with provider { System.getenv("PORT").toInt() }
+    bind<Int>("port") with provider { System.getenv().getOrDefault("PORT", "8080").toInt() }
     bind<ObjectMapper>() with provider { jacksonObjectMapper() }
-    bind<PipelineController>() with provider { PipelineController(instance(), instance(), instance()) }
+    bind<Boolean>("skipAuth") with provider { System.getenv().getOrDefault("SKIP_AUTH", "true").toBoolean() }
+    bind<PipelineController>() with provider { PipelineController(instance(), instance(), instance(), instance("skipAuth")) }
 }
 
 fun main(args: Array<String>) {
@@ -30,5 +31,6 @@ fun main(args: Array<String>) {
         import(pipelineModule)
         import(appModule)
     }
+
     WebApplication(kodein).start()
 }

@@ -8,14 +8,14 @@ import java.util.concurrent.ConcurrentHashMap
 
 class OperationsManager(private val pipelineDao: PipelineDao, private val resClient: DestinationClient) {
 
-    private val inProgress: MutableMap<String, CompletableFuture<*>> = ConcurrentHashMap()
+    private val inProgress: MutableMap<UUID, CompletableFuture<*>> = ConcurrentHashMap()
 
-    fun enqueue(request: PipelineRequest) : String {
-        val uuid = UUID.randomUUID().toString()
+    fun enqueue(request: PipelineRequest) : UUID {
+        val uuid = UUID.randomUUID()
         inProgress[uuid] = CompletableFuture.completedFuture(request)
                 .thenApplyAsync { pipelineDao.saveRequest(uuid, it); it }
                 .thenApplyAsync(PipelineRequest::apply)
-                .thenApplyAsync { pipelineDao.saveResult(uuid, it, UUID.fromString(uuid)); it }
+                .thenApplyAsync { pipelineDao.saveResult(UUID.randomUUID(), it, uuid); it }
                 .thenApplyAsync {
                     if(request.destination != null)
                         resClient.send(request.destination, it)
@@ -28,7 +28,7 @@ class OperationsManager(private val pipelineDao: PipelineDao, private val resCli
         return uuid
     }
 
-    fun status(uuid: String) : PipelineStatus {
+    fun status(uuid: UUID) : PipelineStatus {
         val future = inProgress[uuid]
         if(future == null) {
             val result = pipelineDao.result(uuid)

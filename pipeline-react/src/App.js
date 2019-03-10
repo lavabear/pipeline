@@ -20,7 +20,7 @@ class App extends Component {
     }
 
     componentDidMount() {
-        axios.get('https://www.pipeline.inapinch.io/pipeline/api/commands')
+        axios.get('/pipeline/api/commands')
             .then(response => {
                 this.setState({commands: response.data})
             }).catch(console.error)

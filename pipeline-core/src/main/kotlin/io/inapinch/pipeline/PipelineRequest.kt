@@ -16,7 +16,7 @@ data class PipelineRequest(val start: Start<out Any>,
                 is Group -> pipeline.map { (it as? Collection<*>)?.toMutableList()?.chunked(operation.count)
                         ?: Collections.singletonList(Collections.singletonList(it)) }
                 is Skip -> pipeline.skip(operation.count)
-                is Run -> pipeline.map { operation.invoke(it as String).apply() }
+                is Run -> pipeline.map { operation.invoke(UUID.fromString(it as String)).apply() }
                 else -> pipeline.map((operation as AnyOperation)::invoke)
             }
         return pipeline.result().get()
