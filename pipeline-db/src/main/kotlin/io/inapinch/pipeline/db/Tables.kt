@@ -11,5 +11,6 @@ object VerifiedPipelineRequests : Table() {
 object VerifiedPipelineResults : Table() {
     val uuid = uuid("uuid").primaryKey()
     val result = text("result")
+    val requestId = uuid("request_id").primaryKey()
     val created = datetime("created").index()
 }

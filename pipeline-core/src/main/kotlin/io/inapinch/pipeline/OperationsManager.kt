@@ -15,7 +15,7 @@ class OperationsManager(private val pipelineDao: PipelineDao, private val resCli
         inProgress[uuid] = CompletableFuture.completedFuture(request)
                 .thenApplyAsync { pipelineDao.saveRequest(uuid, it); it }
                 .thenApplyAsync(PipelineRequest::apply)
-                .thenApplyAsync { pipelineDao.saveResult(uuid, it); it }
+                .thenApplyAsync { pipelineDao.saveResult(uuid, it, UUID.fromString(uuid)); it }
                 .thenApplyAsync {
                     if(request.destination != null)
                         resClient.send(request.destination, it)

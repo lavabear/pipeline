@@ -6,7 +6,7 @@ import java.util.*
 interface PipelineDao {
     fun saveRequest(id: String, request: PipelineRequest)
 
-    fun saveResult(id: String, result: Any)
+    fun saveResult(id: String, result: Any, requestId: UUID)
 
     fun result(id: String) : Optional<Any>
 

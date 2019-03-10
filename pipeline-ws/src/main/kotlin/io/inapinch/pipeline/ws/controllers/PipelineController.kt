@@ -20,28 +20,14 @@ import java.util.concurrent.TimeUnit
 
 data class Status(val message: String, val timestamp: LocalDateTime = LocalDateTime.now())
 
+data class PipelineError(val error: String)
+
+private val LOG = LoggerFactory.getLogger(WebApplication::class.java)
+
 class PipelineController(private val mapper: ObjectMapper,
                          private val dao: PipelineDao,
-                         private val manager: OperationsManager) {
-
-    companion object {
-        private val LOG = LoggerFactory.getLogger(WebApplication::class.java)
-
-        private const val STATIC_CONTENT_URL = "http://pinch-pipeline.s3-website-us-west-2.amazonaws.com"
-    }
-
-    private val reactContent: Supplier<String>
-    private val commands: Supplier<List<CommandUsage>>
-    private val reactStaticContent: MutableMap<String, Supplier<Pair<String, String>>>
-
-    init {
-        reactStaticContent = Maps.newConcurrentMap()
-        commands = Suppliers.memoize { CommandUsage.all() }
-        reactContent = Suppliers.memoizeWithExpiration({ get("")!!
-                .string()
-                .replace("<noscript>You need to enable JavaScript to run this app.</noscript>", "") },
-                30, TimeUnit.MINUTES)
-    }
+                         private val manager: OperationsManager,
+                         private val commands: Supplier<List<CommandUsage>> = Suppliers.memoize { CommandUsage.all() }) {
 
     fun newRequest(context: Context) {
         val request : PipelineRequest = mapper.readValue(context.body())
@@ -50,18 +36,11 @@ class PipelineController(private val mapper: ObjectMapper,
         context.status(202)
     }
 
-    fun staticContent(context: Context) {
-        val path = context.request().servletPath
-        val static = reactStaticContent.getOrElse(path) {
-            val result = Suppliers.memoizeWithExpiration({
-                val response = get(path)!!
-                Pair(response.contentType().toString(), response.string()) }, 30, TimeUnit.MINUTES)
-            reactStaticContent[path] = result
-            result}.get()
-        if(context.status() <= 400)
-            context.status(200)
-        context.contentType(static.first)
-        context.result(static.second)
+    fun newRequestFromCommandLanguage(context: Context) {
+        val request : PipelineCLRequest = mapper.readValue(context.body())
+
+        context.header("Location", manager.enqueue(request.toPipelineRequest(mapper)))
+        context.status(202)
     }
 
     fun pipelineStatus(context: Context) {
@@ -82,20 +61,7 @@ class PipelineController(private val mapper: ObjectMapper,
         context.json(Status("ok"))
     }
 
-    fun landingPage(context: Context) {
-        context.html(reactContent.get())
-    }
-
     fun commands(context: Context) {
         context.json(commands.get())
     }
-
-    private fun get(url: String, timeout: Duration = Duration.ofMinutes(1)): ResponseBody? = OkHttpClient.Builder()
-            .readTimeout(timeout.toMinutes(), TimeUnit.MINUTES)
-            .build()
-            .newCall(Request.Builder().get().url("$STATIC_CONTENT_URL$url").build())
-            .execute()
-            .body()
 }
-
-data class PipelineError(val error: String)

@@ -31,12 +31,13 @@ class PipelineDaoImpl(private val objectMapper: ObjectMapper, dataSource: DataSo
         return result
     }
 
-    override fun saveResult(id: String, result: Any) {
+    override fun saveResult(id: String, result: Any, requestId: UUID) {
         val value = objectMapper.writeValueAsString(result)
         transaction {
             VerifiedPipelineResults.insert {
                 it[uuid] = UUID.fromString(id)
-                it[VerifiedPipelineResults.result] = value
+                it[this.result] = value
+                it[this.requestId] = requestId
                 it[created] = DateTime.now()
             }
         }

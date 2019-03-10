@@ -31,11 +31,16 @@ class PipelineTest {
         CombinationsHandler.combine(listOf(1), "gs!")
     }
 
-    @Test
-    fun testCombinationsManager_identityOperations() {
+    @Test(expected = IllegalArgumentException::class)
+    fun testCombinationsManager_cantCombineStart() {
         assertEquals("Hugs!", Start("Hu")
                 .combine(Start("gs!"))
-                .invoke("Hello")) // Start ignores input
+                .invoke(""))
+    }
+
+    @Test
+    fun testCombinationsManager_startIgnoresInput() {
+        assertEquals("Hu", Start("Hu").invoke("Hello"))
     }
 
     @Test

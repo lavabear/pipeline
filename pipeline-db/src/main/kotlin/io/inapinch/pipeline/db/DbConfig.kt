@@ -15,7 +15,7 @@ object DbConfig {
     fun postgresJdbcUrl(dbUri: URI) : String {
         val username = dbUri.userInfo.split(":")[0]
         val password = dbUri.userInfo.split(":")[1]
-        val dbUrl = "jdbc:postgresql://" + dbUri.host + ':' + dbUri.port + dbUri.path
+        val dbUrl = "jdbc:postgresql://${dbUri.host}:${dbUri.port}${dbUri.path}"
         return "$dbUrl?user=$username&password=$password"
     }
 }
