@@ -11,13 +11,10 @@ import io.inapinch.pipeline.operations.CommandUsage
 import io.inapinch.pipeline.ws.WebApplication
 import io.javalin.Context
 import org.slf4j.LoggerFactory
-import org.slf4j.MDC
 import java.time.LocalDateTime
 import java.util.*
 
 data class Status(val message: String, val timestamp: LocalDateTime = LocalDateTime.now())
-
-data class PipelineError(val error: String)
 
 private val LOG = LoggerFactory.getLogger(WebApplication::class.java)
 

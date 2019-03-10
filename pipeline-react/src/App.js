@@ -1,56 +1,74 @@
 import React, { Component } from 'react';
+import { Navbar, Button } from 'react-bootstrap';
 import './App.css';
-import { Redirect } from 'react-router'
-import { Route, Link } from 'react-router-dom'
-import { Home } from './Home';
-import { Commands } from './Command';
-import { Editor } from './Editor';
-import { ToastContainer } from 'react-toastify';
-// import { toast } from 'react-toastify';
-import 'react-toastify/dist/ReactToastify.css';
-
-import axios from "axios";
 
 class App extends Component {
-    constructor(props) {
-        super(props);
-        this.state = {commands: [], pipelineRequest: [], selected: undefined, previewCommand: undefined}
-        this.changeSelected = this.changeSelected.bind(this);
-        this.showCommand = this.showCommand.bind(this);
-    }
+  goTo(route) {
+    this.props.history.replace(`/${route}`)
+  }
 
-    componentDidMount() {
-        axios.get('https://pipeline-ws.herokuapp.com/pipeline/api/commands')
-            .then(response => {
-                this.setState({commands: response.data})
-            }).catch(console.error)
-    }
+  login() {
+    this.props.auth.login();
+  }
 
-    changeSelected(selected) {
-        this.setState({selected: this.state.commands[selected.currentTarget.value]})
-    }
+  logout() {
+    this.props.auth.logout();
+  }
 
-    showCommand(raw) {
-        return (event) => this.setState({previewCommand: raw})
-    }
+  componentDidMount() {
+    const { renewSession } = this.props.auth;
 
-    render() {
-        return (
-        <div className="App">
-          <ul>
-              <li><Link to="/home" title="Home">Home</Link></li>
-              <li><Link to="/commands" title="Commands">Commands</Link></li>
-              <li><Link to="/editor" title="Editor">Editor</Link></li>
-          </ul>
-          <ToastContainer />
-          <Route exact path="/" component={() => <Redirect to="/home" />}/>
-          <Route exact path="/home" component={() =>
-              Home(this.state.commands, this.state.pipelineRequest, this.state.selected, this.changeSelected)}/>
-          <Route exact path="/commands" component={() => Commands(this.state.commands, this.state.previewCommand, this.showCommand)}/>
-          <Route exact path="/editor" component={() => Editor(this.state.commands, this.state.previewCommand, this.showCommand)}/>
-        </div>
-        );
+    if (localStorage.getItem('isLoggedIn') === 'true') {
+      renewSession();
     }
+  }
+
+  render() {
+    const { isAuthenticated } = this.props.auth;
+
+    return (
+      <div>
+        <Navbar fluid>
+          <Navbar.Header>
+            <Navbar.Brand>
+              <a href="#">Pipeline - React</a>
+            </Navbar.Brand>
+            <Button
+              bsStyle="primary"
+              className="btn-margin"
+              onClick={this.goTo.bind(this, 'home')}
+            >
+              Home
+            </Button>
+            {
+              !isAuthenticated() && (
+                  <Button
+                    id="qsLoginBtn"
+                    bsStyle="primary"
+                    className="btn-margin"
+                    onClick={this.login.bind(this)}
+                  >
+                    Log In
+                  </Button>
+                )
+            }
+            {
+              isAuthenticated() && (
+                  <Button
+                    id="qsLogoutBtn"
+                    bsStyle="primary"
+                    className="btn-margin"
+                    onClick={this.logout.bind(this)}
+                  >
+                    Log Out
+                  </Button>
+                )
+            }
+          </Navbar.Header>
+        </Navbar>
+      </div>
+    );
+  }
 }
 
 export default App;
