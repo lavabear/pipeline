@@ -25,12 +25,7 @@ val pipelineModule = Kodein.Module("pipelineModule") {
 val appModule = Kodein.Module("appModule") {
     bind<Boolean>("skipAuth") with singleton { System.getenv().getOrDefault("SKIP_AUTH", "true").toBoolean() }
     bind<Int>("server-port") with singleton {
-        val skipAuth:Boolean = instance("skipAuth")
-        if(!skipAuth)
-            80
-        else {
-            System.getenv().getOrDefault("PORT", "8080").toInt()
-        }.also {  LOG.info("Port is {}", it) }
+        System.getenv().getOrDefault("PORT", "8080").toInt()
     }
     bind<ObjectMapper>() with provider { jacksonObjectMapper() }
     bind<PipelineController>() with provider { PipelineController(instance(), instance(), instance(), instance("skipAuth")) }
