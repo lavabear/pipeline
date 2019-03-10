@@ -32,15 +32,12 @@ data class WebApplication(override val kodein: Kodein) : KodeinAware {
                         get("", controller::status)
                         post("", controller::newRequest)
                         post("cl", controller::newRequestFromCommandLanguage)
-                        path("commands") {
-                            get("", controller::commands)
-                        }
+                        get("commands", controller::commands)
+
                         path(":id") {
                             get("", controller::pipelineStatus)
                             post("schedule", controller::newScheduledItem)
-                            path("operations") {
-                                get("", controller::pipelineRequest)
-                            }
+                            get("operations", controller::pipelineRequest)
                         }
                     }
                 }
