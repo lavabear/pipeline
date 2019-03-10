@@ -43,6 +43,9 @@ data class WebApplication(override val kodein: Kodein) : KodeinAware {
             }
 
             exception(Exception::class.java, controller::error)
+            error(401, controller::unauthenticated)
+            error(404, controller::notFound)
+            error(500, controller::serverError)
         }.start(port)
     }
 }

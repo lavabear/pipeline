@@ -11,6 +11,7 @@ import io.inapinch.pipeline.operations.CommandUsage
 import io.inapinch.pipeline.ws.WebApplication
 import io.javalin.Context
 import org.slf4j.LoggerFactory
+import org.slf4j.MDC
 import java.time.LocalDateTime
 import java.util.*
 
@@ -75,7 +76,20 @@ class PipelineController(private val mapper: ObjectMapper,
 
     fun error(e: Exception, context: Context) {
         LOG.error(e.localizedMessage, e)
-        context.result(e.message ?: e.localizedMessage)
+        context.attribute("errorMessage", e.message ?: e.localizedMessage)
+        context.status(500)
+    }
+
+    fun unauthenticated(context: Context) {
+        context.result("Please login to continue")
+    }
+
+    fun notFound(context: Context) {
+        context.result("Resource does not exist")
+    }
+
+    fun serverError(context: Context) {
+        context.result("Something went wrong: ${context.attribute("errorMessage") ?: "Check logs"}")
     }
 
     fun status(context: Context) {
