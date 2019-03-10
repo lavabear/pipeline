@@ -20,7 +20,7 @@ class App extends Component {
     }
 
     componentDidMount() {
-        axios.get('/pipeline/api/commands')
+        axios.get('https://pipeline-ws.herokuapp.com/pipeline/api/commands')
             .then(response => {
                 this.setState({commands: response.data})
             }).catch(console.error)
