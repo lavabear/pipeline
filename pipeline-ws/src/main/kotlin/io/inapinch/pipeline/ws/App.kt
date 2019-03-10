@@ -12,6 +12,9 @@ import org.kodein.di.generic.bind
 import org.kodein.di.generic.instance
 import org.kodein.di.generic.provider
 import org.kodein.di.generic.singleton
+import org.slf4j.LoggerFactory
+
+private val LOG = LoggerFactory.getLogger(::main::class.java)
 
 val pipelineModule = Kodein.Module("pipelineModule") {
     bind<OkHttpClient>() with provider { OkHttpClient().newBuilder().build() }
@@ -20,7 +23,11 @@ val pipelineModule = Kodein.Module("pipelineModule") {
 }
 
 val appModule = Kodein.Module("appModule") {
-    bind<Int>("server-port") with singleton { System.getenv().getOrDefault("PORT", "8080").toInt() }
+    bind<Int>("server-port") with singleton {
+        val port = System.getenv().getOrDefault("PORT", "8080").toInt()
+        LOG.info("Port is {}", port)
+        port
+    }
     bind<ObjectMapper>() with provider { jacksonObjectMapper() }
     bind<Boolean>("skipAuth") with singleton { System.getenv().getOrDefault("SKIP_AUTH", "true").toBoolean() }
     bind<PipelineController>() with provider { PipelineController(instance(), instance(), instance(), instance("skipAuth")) }
