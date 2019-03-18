@@ -9,7 +9,7 @@ import java.util.regex.Pattern
 data class PipelineCLRequest(val cl: String,
                              val destination : Destination? = null,
                              val name: String? = null,
-                             val binding : Map<String, Any> = mapOf()) {
+                             override val binding : Map<String, Any> = mapOf()) : HasBinding {
 
     fun toPipelineRequest(objectMapper: ObjectMapper) : PipelineRequest {
         val results = cl.split("=>")

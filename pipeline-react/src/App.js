@@ -1,5 +1,6 @@
 import React, { Component } from 'react';
 import { Navbar, Button } from 'react-bootstrap';
+import { Link } from 'react-router-dom';
 import './App.css';
 
 class App extends Component {
@@ -62,7 +63,11 @@ class App extends Component {
                   >
                     Log Out
                   </Button>
-                )
+                ) && (
+                  <Link to="/commands">
+                      Commands
+                  </Link>
+              )
             }
           </Navbar.Header>
         </Navbar>

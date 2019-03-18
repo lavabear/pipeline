@@ -28,11 +28,31 @@ class PipelineController(private val mapper: ObjectMapper,
 
     fun newRequest(context: Context) {
         ifAuthenticated(context) {
-            val request: PipelineRequest = mapper.readValue(it.body())
-
+            val request : PipelineRequest = addVariableHeaders(context) { request, binding ->
+                request.copy(binding = binding)
+            }
+            request.copy()
             it.header("Location", manager.enqueue(request).location(it))
             it.status(202)
         }
+    }
+
+    private inline fun <reified T : HasBinding> addVariableHeaders(context: Context, copy: (request: T, binding: Map<String, Any>) -> T) : T {
+        val request: T = mapper.readValue(context.body())
+        val contextHeaders = context.headerMap()
+        val requestHeaders = request.binding["headers"]
+        if(requestHeaders != null
+                && (requestHeaders as Map<String,String>).values.any { it.startsWith("$") }) {
+            val binding = request.binding.toMutableMap()
+            val bindingHeader = (request.binding["headers"] as Map<String,String>).toMutableMap()
+            requestHeaders.filter { (k, _) -> k.startsWith("$") }
+                    .filter { (k, _) -> contextHeaders.containsKey(k)}
+                    .mapValues { (key, _) -> contextHeaders[key]!! }
+                    .forEach { bindingHeader[it.key] = it.value }
+            binding["headers"] = bindingHeader
+            return copy(request, binding)
+        }
+        return request
     }
 
     fun newScheduledItem(context: Context) {
@@ -46,8 +66,9 @@ class PipelineController(private val mapper: ObjectMapper,
 
     fun newRequestFromCommandLanguage(context: Context) {
         ifAuthenticated(context) {
-            val request: PipelineCLRequest = mapper.readValue(it.body())
-
+            val request : PipelineCLRequest = addVariableHeaders(context) { request, binding ->
+                request.copy(binding = binding)
+            }
             it.header("Location", manager.enqueue(request.toPipelineRequest(mapper)).location(it))
             it.status(202)
         }

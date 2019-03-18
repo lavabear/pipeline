@@ -20,6 +20,7 @@ class OperationsManager(private val pipelineDao: PipelineDao, private val resCli
                     if(request.destination != null)
                         resClient.send(request.destination, it)
                     it }
+                .thenApplyAsync { inProgress.remove(uuid); it }
                 .exceptionally {
                     val message = "Failed to process pipeline: $uuid\n${it.localizedMessage}"
                     LOG.error(message, it)
@@ -30,15 +31,15 @@ class OperationsManager(private val pipelineDao: PipelineDao, private val resCli
 
     fun status(uuid: UUID) : PipelineStatus {
         val future = inProgress[uuid]
-        if(future == null) {
+        return if(future == null) {
             val result = pipelineDao.result(uuid)
             if(result.isPresent)
-                return PipelineStatus("Found", result.get())
-            return PipelineStatus("Not Found", uuid)
+                PipelineStatus("Found", result.get())
+             PipelineStatus("Not Found", uuid)
         }
         else if(!future.isDone)
-            return PipelineStatus("In Progress", uuid)
-        return PipelineStatus("Finished", future.get())
+            PipelineStatus("In Progress", uuid)
+        else PipelineStatus("Finished", future.get())
     }
 
     companion object {
